@@ -1,0 +1,8 @@
+# Backend files to ignore
+virtu-backend/node_modules/
+virtu-backend/.env
+virtu-backend/*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
