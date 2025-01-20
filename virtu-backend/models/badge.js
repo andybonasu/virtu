@@ -1,8 +1,8 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  const Session = sequelize.define(
-    'Session',
+  const Badge = sequelize.define(
+    'Badge',
     {
       id: {
         type: DataTypes.UUID,
@@ -13,34 +13,33 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      duration: {
-        type: DataTypes.INTEGER, // Duration in minutes
-        allowNull: false,
+      description: {
+        type: DataTypes.TEXT,
+        allowNull: true,
       },
-      videoUrl: {
+      iconUrl: {
         type: DataTypes.STRING,
         allowNull: true,
       },
-      materials: {
-        type: DataTypes.JSON, // Array of resources
+      criteria: {
+        type: DataTypes.TEXT,
         allowNull: true,
-        defaultValue: [],
       },
     },
     {
       timestamps: true,
-      tableName: 'Sessions',
+      tableName: 'Badges',
     }
   );
 
   // Relationships
-  Session.associate = (models) => {
-    Session.belongsTo(models.Course, {
-      foreignKey: 'course_id',
-      as: 'course',
+  Badge.associate = (models) => {
+    Badge.hasMany(models.UserBadge, {
+      foreignKey: 'badge_id',
+      as: 'userBadges',
       onDelete: 'CASCADE',
     });
   };
 
-  return Session;
+  return Badge;
 };

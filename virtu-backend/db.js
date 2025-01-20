@@ -1,10 +1,16 @@
 const { Sequelize } = require('sequelize');
 
 // Create a Sequelize instance and connect to the database
-const sequelize = new Sequelize('virtu_app', 'postgres', 'Anudeepb@123', {
-    host: 'localhost',
-    dialect: 'postgres', // Using PostgreSQL
-    logging: false,      // Set to true to enable SQL query logging
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
+    host: process.env.DB_HOST,
+    dialect: 'postgres',
+    logging: false,
+    pool: {
+        max: 20,
+        min: 5,
+        acquire: 30000,
+        idle: 10000,
+    },
 });
 
 // Test the connection
@@ -19,3 +25,4 @@ sequelize
 
 // Export the Sequelize instance for use in other parts of the app
 module.exports = sequelize;
+

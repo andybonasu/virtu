@@ -1,48 +1,74 @@
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../db'); // Import the Sequelize instance
+const { DataTypes } = require('sequelize');
 
-// Define the User model
-const User = sequelize.define('User', {
-    id: {
+module.exports = (sequelize) => {
+  const User = sequelize.define(
+    'User',
+    {
+      id: {
         type: DataTypes.UUID,
-        defaultValue: Sequelize.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
-    },
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    email: {
+      },
+      email: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
-    },
-    password: {
+        validate: {
+          isEmail: true,
+        },
+      },
+      password: {
         type: DataTypes.STRING,
         allowNull: false,
+      },
+      role: {
+        type: DataTypes.ENUM('trainer', 'client', 'admin'),
+        allowNull: false,
+      },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      profilePic: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      bio: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      contactNumber: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      location: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      expertise: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      socialLinks: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        defaultValue: {},
+      },
+      settings: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        defaultValue: {},
+      },
+      isVerified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
     },
-    role: {
-        type: DataTypes.ENUM('trainer', 'student', 'admin'),
-        defaultValue: 'student',
-    },
-}, {
-    tableName: 'users', // Specify the table name explicitly
-    timestamps: true,   // Add createdAt and updatedAt fields automatically
-});
+    {
+      timestamps: true,
+      tableName: 'Users',
+    }
+  );
 
-module.exports = User;
-
-const Course = require('./course');
-const ToDo = require('./todo');
-const Payment = require('./payment');
-const Notification = require('./notification');
-const SocialMediaIntegration = require('./socialMediaIntegration');
-
-// Define relationships
-User.hasMany(Course, { foreignKey: 'trainer_id' });
-User.hasMany(ToDo, { foreignKey: 'user_id' });
-User.hasMany(Payment, { foreignKey: 'user_id' });
-User.hasMany(Notification, { foreignKey: 'user_id' });
-User.hasMany(SocialMediaIntegration, { foreignKey: 'user_id' });
-
-module.exports = User;
+  return User;
+};

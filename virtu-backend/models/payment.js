@@ -1,40 +1,62 @@
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../db'); // Import the database connection
+const { DataTypes } = require('sequelize');
 
-const Payment = sequelize.define('Payment', {
-    id: {
+module.exports = (sequelize) => {
+  const Payment = sequelize.define(
+    'Payment',
+    {
+      id: {
         type: DataTypes.UUID,
-        defaultValue: Sequelize.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
-    },
-    user_id: {
-        type: DataTypes.UUID,
+      },
+      amount: {
+        type: DataTypes.FLOAT,
         allowNull: false,
-    },
-    course_id: {
-        type: DataTypes.UUID,
+      },
+      transactionId: {
+        type: DataTypes.STRING,
         allowNull: false,
-    },
-    amount: {
-        type: DataTypes.DECIMAL(10, 2),
+        unique: true,
+      },
+      paymentMethod: {
+        type: DataTypes.STRING,
         allowNull: false,
-    },
-    status: {
+      },
+      currency: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'USD',
+      },
+      status: {
         type: DataTypes.ENUM('pending', 'completed', 'failed'),
+        allowNull: false,
         defaultValue: 'pending',
+      },
+      invoiceUrl: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
     },
-}, {
-    tableName: 'payments',
-    timestamps: true,
-});
+    {
+      timestamps: true,
+      tableName: 'Payments',
+    }
+  );
 
-module.exports = Payment;
+  // Relationships
+  Payment.associate = (models) => {
+    Payment.belongsTo(models.User, {
+      foreignKey: 'user_id',
+      as: 'user',
+      onDelete: 'CASCADE',
+    });
 
-const User = require('./user');
-const Course = require('./course');
+    Payment.belongsTo(models.Course, {
+      foreignKey: 'course_id',
+      as: 'course',
+      onDelete: 'CASCADE',
+    });
+  };
 
-// Define relationships
-Payment.belongsTo(User, { foreignKey: 'user_id' });
-Payment.belongsTo(Course, { foreignKey: 'course_id' });
-
-module.exports = Payment;
+  return Payment;
+};

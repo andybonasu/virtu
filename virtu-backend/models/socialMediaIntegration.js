@@ -1,34 +1,49 @@
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../db'); // Import the database connection
+const { DataTypes } = require('sequelize');
 
-const SocialMediaIntegration = sequelize.define('SocialMediaIntegration', {
-    id: {
+module.exports = (sequelize) => {
+  const SocialMediaIntegration = sequelize.define(
+    'SocialMediaIntegration',
+    {
+      id: {
         type: DataTypes.UUID,
-        defaultValue: Sequelize.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
-    },
-    user_id: {
-        type: DataTypes.UUID,
-        allowNull: false,
-    },
-    platform: {
+      },
+      platform: {
         type: DataTypes.STRING,
         allowNull: false,
-    },
-    account_details: {
-        type: DataTypes.JSONB,
+      },
+      account_name: {
+        type: DataTypes.STRING,
         allowNull: false,
+      },
+      accessToken: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      refreshToken: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      expiresAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
     },
-}, {
-    tableName: 'social_media_integrations',
-    timestamps: true,
-});
+    {
+      timestamps: true,
+      tableName: 'SocialMediaIntegrations',
+    }
+  );
 
-module.exports = SocialMediaIntegration;
+  // Relationships
+  SocialMediaIntegration.associate = (models) => {
+    SocialMediaIntegration.belongsTo(models.User, {
+      foreignKey: 'user_id',
+      as: 'user',
+      onDelete: 'CASCADE',
+    });
+  };
 
-const User = require('./user');
-
-// Define relationships
-SocialMediaIntegration.belongsTo(User, { foreignKey: 'user_id' });
-
-module.exports = SocialMediaIntegration;
+  return SocialMediaIntegration;
+};

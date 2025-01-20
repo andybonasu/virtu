@@ -1,38 +1,57 @@
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../db'); // Import the database connection
+const { DataTypes } = require('sequelize');
 
-const ToDo = sequelize.define('ToDo', {
-    id: {
+module.exports = (sequelize) => {
+  const ToDo = sequelize.define(
+    'ToDo',
+    {
+      id: {
         type: DataTypes.UUID,
-        defaultValue: Sequelize.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
-    },
-    user_id: {
-        type: DataTypes.UUID,
-        allowNull: false,
-    },
-    type: {
+      },
+      task: {
         type: DataTypes.STRING,
         allowNull: false,
-    },
-    description: {
-        type: DataTypes.TEXT,
+      },
+      status: {
+        type: DataTypes.ENUM('pending', 'completed', 'overdue'),
         allowNull: false,
-    },
-    status: {
-        type: DataTypes.ENUM('pending', 'completed'),
         defaultValue: 'pending',
+      },
+      dueDate: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      priority: {
+        type: DataTypes.ENUM('Low', 'Medium', 'High'),
+        allowNull: false,
+        defaultValue: 'Medium',
+      },
+      type: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
     },
-}, {
-    tableName: 'todos',
-    timestamps: true,
-});
+    {
+      timestamps: true,
+      tableName: 'ToDos',
+    }
+  );
 
-module.exports = ToDo;
+  // Relationships
+  ToDo.associate = (models) => {
+    ToDo.belongsTo(models.User, {
+      foreignKey: 'user_id',
+      as: 'user',
+      onDelete: 'CASCADE',
+    });
 
-const User = require('./user');
+    ToDo.belongsTo(models.ToDo, {
+      foreignKey: 'dependencyId',
+      as: 'dependency',
+      onDelete: 'SET NULL',
+    });
+  };
 
-// Define relationships
-ToDo.belongsTo(User, { foreignKey: 'user_id' });
-
-module.exports = ToDo;
+  return ToDo;
+};

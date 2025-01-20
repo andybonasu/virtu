@@ -1,38 +1,59 @@
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../db'); // Import the database connection
+const { DataTypes } = require('sequelize');
 
-const Notification = sequelize.define('Notification', {
-    id: {
+module.exports = (sequelize) => {
+  const Notification = sequelize.define(
+    'Notification',
+    {
+      id: {
         type: DataTypes.UUID,
-        defaultValue: Sequelize.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
-    },
-    user_id: {
-        type: DataTypes.UUID,
-        allowNull: false,
-    },
-    type: {
+      },
+      type: {
         type: DataTypes.STRING,
         allowNull: false,
-    },
-    content: {
-        type: DataTypes.TEXT,
+      },
+      message: {
+        type: DataTypes.STRING,
         allowNull: false,
-    },
-    status: {
+      },
+      status: {
         type: DataTypes.ENUM('unread', 'read'),
+        allowNull: false,
         defaultValue: 'unread',
+      },
+      priority: {
+        type: DataTypes.ENUM('Low', 'Medium', 'High'),
+        allowNull: false,
+        defaultValue: 'Low',
+      },
+      category: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      readAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      actionUrl: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
     },
-}, {
-    tableName: 'notifications',
-    timestamps: true,
-});
+    {
+      timestamps: true,
+      tableName: 'Notifications',
+    }
+  );
 
-module.exports = Notification;
+  // Relationships
+  Notification.associate = (models) => {
+    Notification.belongsTo(models.User, {
+      foreignKey: 'user_id',
+      as: 'user',
+      onDelete: 'CASCADE',
+    });
+  };
 
-const User = require('./user');
-
-// Define relationships
-Notification.belongsTo(User, { foreignKey: 'user_id' });
-
-module.exports = Notification;
+  return Notification;
+};

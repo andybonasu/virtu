@@ -1,157 +1,73 @@
-// Load environment variables
+const fs = require('fs');
+const path = require('path');
+const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-// Import necessary modules
-const express = require('express');
-const cors = require('cors');
-const sequelize = require('./db'); // Database connection
+const basename = path.basename(__filename);
+const db = {};
 
-// Import models
-const User = require('./models/user');
-const Course = require('./models/course');
-const ToDo = require('./models/todo');
-const Session = require('./models/session');
-const Payment = require('./models/payment');
-const Notification = require('./models/notification');
-const SocialMediaIntegration = require('./models/socialMediaIntegration');
+// Log: Starting script
+console.log('Starting index.js execution...');
 
-// Define relationships
-User.hasMany(Course, { foreignKey: 'trainer_id' });
-Course.belongsTo(User, { foreignKey: 'trainer_id' });
-
-User.hasMany(ToDo, { foreignKey: 'user_id' });
-ToDo.belongsTo(User, { foreignKey: 'user_id' });
-
-Course.hasMany(Session, { foreignKey: 'course_id' });
-Session.belongsTo(Course, { foreignKey: 'course_id' });
-
-User.hasMany(Payment, { foreignKey: 'user_id' });
-Payment.belongsTo(User, { foreignKey: 'user_id' });
-
-Course.hasMany(Payment, { foreignKey: 'course_id' });
-Payment.belongsTo(Course, { foreignKey: 'course_id' });
-
-User.hasMany(Notification, { foreignKey: 'user_id' });
-Notification.belongsTo(User, { foreignKey: 'user_id' });
-
-User.hasMany(SocialMediaIntegration, { foreignKey: 'user_id' });
-SocialMediaIntegration.belongsTo(User, { foreignKey: 'user_id' });
-
-// Initialize Express app
-const app = express();
-
-// Middleware
-app.use(cors());
-app.use(express.json()); // Parse JSON requests
-
-// Routes (placeholder for future API endpoints)
-app.get('/', (req, res) => {
-    res.send('Virtu Backend API is Running!');
-});
-
-// Sync models with the database
-sequelize.sync({ force: false }) // Set `force: true` to reset tables during development
-    .then(() => {
-        console.log('Database synchronized with relationships!');
-    })
-    .catch((err) => {
-        console.error('Error synchronizing database:', err);
-    });
-
-// Start the server
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
-});
-
-const bcrypt = require('bcrypt'); // For password hashing
-
-// User Registration API
-app.post('/register', async (req, res) => {
-    const { name, email, password, role } = req.body;
-
-    try {
-        // Check if the user already exists
-        const existingUser = await User.findOne({ where: { email } });
-        if (existingUser) {
-            return res.status(400).json({ message: 'Email already registered' });
-        }
-
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Create the user
-        const newUser = await User.create({
-            name,
-            email,
-            password: hashedPassword,
-            role,
-        });
-
-        res.status(201).json({ message: 'User registered successfully', user: newUser });
-    } catch (error) {
-        console.error('Error in registration:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-const jwt = require('jsonwebtoken'); // For token generation
-
-// User Login API
-app.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-
-    try {
-        // Find the user by email
-        const user = await User.findOne({ where: { email } });
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        // Compare the password
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            return res.status(401).json({ message: 'Invalid password' });
-        }
-
-        // Generate a JWT token
-        const token = jwt.sign({ id: user.id, role: user.role }, 'process.env.JWT_SECRET', { expiresIn: '1h' });
-
-        res.status(200).json({ message: 'Login successful', token });
-    } catch (error) {
-        console.error('Error in login:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-// Middleware to verify JWT token
-const authenticate = (req, res, next) => {
-  const token = req.headers['authorization'];
-  if (!token) {
-      return res.status(401).json({ message: 'No token provided' });
+// Initialize Sequelize
+const sequelize = new Sequelize(
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
+  {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    dialect: 'postgres',
+    logging: false, // Enable for SQL query logs
   }
+);
 
-  jwt.verify(token.split(' ')[1], 'process.env.JWT_SECRET', (err, decoded) => {
-      if (err) {
-          return res.status(403).json({ message: 'Failed to authenticate token' });
-      }
-      req.userId = decoded.id;
-      req.role = decoded.role;
-      next();
+// Log: Sequelize initialized
+console.log('Sequelize initialized.');
+
+// Dynamically load all model files, excluding db.js and seed.js
+fs.readdirSync(path.join(__dirname, 'models'))
+  .filter((file) => file.indexOf('.') !== 0 && file.slice(-3) === '.js' && file !== basename)
+  .forEach((file) => {
+    try {
+      console.log(`Loading model file: ${file}`); // Log model file being loaded
+      const model = require(path.join(__dirname, 'models', file))(sequelize);
+      db[model.name] = model;
+      console.log(`Successfully loaded model: ${model.name}`);
+    } catch (error) {
+      console.error(`Error loading model file: ${file}`, error.message);
+    }
   });
-};
 
-// Profile route with authentication
-app.get('/profile', authenticate, async (req, res) => {
-  try {
-      const user = await User.findByPk(req.userId);
-      if (!user) {
-          return res.status(404).json({ message: 'User not found' });
-      }
-      res.status(200).json(user);
-  } catch (error) {
-      console.error('Error fetching profile:', error);
-      res.status(500).json({ message: 'Internal server error' });
+// Log: All models loaded
+console.log('All models loaded:', Object.keys(db));
+
+// Define relationships (associations)
+Object.keys(db).forEach((modelName) => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
   }
 });
 
+// Log: Relationships defined
+console.log('Relationships defined.');
+
+// Ensure sequelize is initialized properly before attempting connection
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
+
+// Test database connection
+db.sequelize
+  .authenticate()
+  .then(() => console.log('Database connection successful!'))
+  .catch((err) => console.error('Database connection failed:', err));
+
+// Sync database and create tables (force: true will drop existing tables and recreate)
+db.sequelize.sync({ force: true })
+  .then(() => console.log('Database synced successfully!'))
+  .catch((err) => console.error('Error syncing database:', err));
+
+// Log: Exporting models
+console.log('Exporting models.');
+
+module.exports = db;
