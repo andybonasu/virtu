@@ -25,13 +25,13 @@ const sequelize = new Sequelize(
 // Log: Sequelize initialized
 console.log('Sequelize initialized.');
 
-// Dynamically load all model files, excluding db.js and seed.js
-fs.readdirSync(path.join(__dirname, 'models'))
-  .filter((file) => file.indexOf('.') !== 0 && file.slice(-3) === '.js' && file !== basename)
+// Dynamically load all model files in the same directory as `index.js`
+fs.readdirSync(path.join(__dirname, 'models')) // Adjust path to models directory
+  .filter((file) => file.indexOf('.') !== 0 && file.slice(-3) === '.js')
   .forEach((file) => {
     try {
       console.log(`Loading model file: ${file}`); // Log model file being loaded
-      const model = require(path.join(__dirname, 'models', file))(sequelize);
+      const model = require(path.join(__dirname, 'models', file))(sequelize, Sequelize.DataTypes);
       db[model.name] = model;
       console.log(`Successfully loaded model: ${model.name}`);
     } catch (error) {
@@ -52,18 +52,19 @@ Object.keys(db).forEach((modelName) => {
 // Log: Relationships defined
 console.log('Relationships defined.');
 
-// Ensure sequelize is initialized properly before attempting connection
+// Attach Sequelize instance and class to the db object
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
 // Test database connection
-db.sequelize
+sequelize
   .authenticate()
   .then(() => console.log('Database connection successful!'))
   .catch((err) => console.error('Database connection failed:', err));
 
-// Sync database and create tables (force: true will drop existing tables and recreate)
-db.sequelize.sync({ force: true })
+// Sync database (use `force: true` for testing purposes)
+sequelize
+  .sync({ force: true }) // Drops tables and recreates them
   .then(() => console.log('Database synced successfully!'))
   .catch((err) => console.error('Error syncing database:', err));
 
