@@ -1,74 +1,69 @@
-const fs = require('fs');
-const path = require('path');
-const { Sequelize } = require('sequelize');
-require('dotenv').config();
+require('dotenv').config(); // Load environment variables
 
-const basename = path.basename(__filename);
-const db = {};
+const express = require('express');
+const morgan = require('morgan');
+const sequelize = require('./db'); // Import Sequelize instance
+const userRoutes = require('./routes/userRoutes');
+const authRoutes = require('./routes/authRoutes'); // Ensure auth routes are included
+const errorHandler = require('./middleware/errorHandler');
+const logger = require('./utils/logger'); // Import Winston logger
+const rateLimit = require('express-rate-limit');
 
-// Log: Starting script
-console.log('Starting index.js execution...');
+const app = express();
 
-// Initialize Sequelize
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'postgres',
-    logging: false, // Enable for SQL query logs
-  }
-);
+// ✅ Ensure Express Trusts Reverse Proxies (Fix for IP detection)
+app.set('trust proxy', 1);
 
-// Log: Sequelize initialized
-console.log('Sequelize initialized.');
-
-// Dynamically load all model files in the same directory as `index.js`
-fs.readdirSync(path.join(__dirname, 'models')) // Adjust path to models directory
-  .filter((file) => file.indexOf('.') !== 0 && file.slice(-3) === '.js')
-  .forEach((file) => {
-    try {
-      console.log(`Loading model file: ${file}`); // Log model file being loaded
-      const model = require(path.join(__dirname, 'models', file))(sequelize, Sequelize.DataTypes);
-      db[model.name] = model;
-      console.log(`Successfully loaded model: ${model.name}`);
-    } catch (error) {
-      console.error(`Error loading model file: ${file}`, error.message);
-    }
-  });
-
-// Log: All models loaded
-console.log('All models loaded:', Object.keys(db));
-
-// Define relationships (associations)
-Object.keys(db).forEach((modelName) => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db);
-  }
+// ✅ Configure Global Rate Limiter (for non-auth routes)
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per window
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: false,
+  legacyHeaders: false,
 });
 
-// Log: Relationships defined
-console.log('Relationships defined.');
+// ✅ Middleware
+app.use(express.json()); // Parse JSON request bodies
+app.use(morgan('dev')); // Log incoming requests
 
-// Attach Sequelize instance and class to the db object
-db.sequelize = sequelize;
-db.Sequelize = Sequelize;
+// ✅ Log each incoming request (Commented out)
+/*
+app.use((req, res, next) => {
+  logger.info(`Incoming request: ${req.method} ${req.url} from IP: ${req.ip}`);
+  next();
+});
+*/
 
-// Test database connection
+// ✅ Apply global rate limiter **only to non-auth routes**
+app.use('/api/v1/users', generalLimiter, userRoutes);
+
+// ✅ Use separate route for authentication **without the global limiter**
+app.use('/api/v1/auth', authRoutes); // 🛑 FIXED: Now auth routes won't be affected by global rate limiter
+
+// ✅ Health check route (Commented out)
+/*
+app.get('/health', (req, res) => {
+  logger.info('Health check endpoint hit');
+  res.status(200).json({ status: 'OK', message: 'Server is running.' });
+});
+*/
+
+// ✅ Error-handling middleware
+app.use(errorHandler);
+
+// ✅ Sync database (Commented out logs)
+/*
 sequelize
-  .authenticate()
-  .then(() => console.log('Database connection successful!'))
-  .catch((err) => console.error('Database connection failed:', err));
+  .sync({ alter: true }) // Adjust tables without dropping them
+  .then(() => logger.info('Database synced successfully!'))
+  .catch((err) => logger.error(`Error syncing database: ${err.message}`));
+*/
 
-// Sync database (use `force: true` for testing purposes)
-sequelize
-  .sync({ force: true }) // Drops tables and recreates them
-  .then(() => console.log('Database synced successfully!'))
-  .catch((err) => console.error('Error syncing database:', err));
-
-// Log: Exporting models
-console.log('Exporting models.');
-
-module.exports = db;
+// ✅ Start the server (Commented out logs)
+/*
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
+*/
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {});
