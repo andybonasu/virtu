@@ -1,8 +1,8 @@
-const { DataTypes } = require('sequelize');
+const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
   const User = sequelize.define(
-    'User',
+    "User",
     {
       id: {
         type: DataTypes.UUID,
@@ -13,16 +13,13 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
-        validate: {
-          isEmail: true,
-        },
       },
       password: {
         type: DataTypes.STRING,
         allowNull: false,
       },
       role: {
-        type: DataTypes.ENUM('trainer', 'client', 'admin'),
+        type: DataTypes.ENUM("trainer", "client", "admin"),
         allowNull: false,
       },
       name: {
@@ -61,12 +58,24 @@ module.exports = (sequelize) => {
       },
       isVerified: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false,
+        allowNull: false,
+        defaultValue: sequelize.literal(
+          `CASE WHEN role = 'client' THEN true ELSE false END`
+        ),
+      },
+      approvalStatus: {
+        type: DataTypes.ENUM("pending", "approved", "rejected"),
+        allowNull: false,
+        defaultValue: "pending",
+      },
+      rejectionReason: {
+        type: DataTypes.TEXT,
+        allowNull: true,
       },
     },
     {
-      timestamps: true,
-      tableName: 'Users',
+      timestamps: true, // ✅ Keeps createdAt & updatedAt columns
+      tableName: "Users", // ✅ Explicitly defines table name
     }
   );
 

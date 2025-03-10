@@ -1,60 +1,45 @@
-const express = require('express');
+const express = require("express");
 const {
   getAllUsers,
   getUserById,
-  createUser,
+  getCurrentUser,
   updateUser,
   deleteUser,
-} = require('../controllers/userController');
-const { login, logout, refreshToken } = require('../controllers/authController');
-const { authenticateToken } = require('../middleware/authMiddleware');
-const authorize = require('../middleware/authorize'); // RBAC middleware
-const { body } = require('express-validator');
-const validate = require('../middleware/validate');
+} = require("../controllers/userController");
+const { authenticateToken } = require("../middleware/authMiddleware");
+const authorize = require("../middleware/authorize");
+const { body } = require("express-validator");
+const validate = require("../middleware/validate");
 
 const router = express.Router();
 
-// Auth routes (public)
-router.post('/auth/login', login);
-router.post('/auth/logout', logout);
-router.post('/auth/refresh', refreshToken);
+// ✅ Get current user's profile (Clients & Trainers)
+router.get("/me", authenticateToken, getCurrentUser);
 
-// User routes
-
-// Admin-only route to fetch all users
-router.get('/', authenticateToken, authorize(['admin']), getAllUsers); // Protected, admin-only
-
-// Fetch user by ID (accessible by admin and the user themselves)
-router.get('/:id', authenticateToken, (req, res, next) => {
-  if (req.user.role === 'admin' || req.user.id === req.params.id) {
-    return next();
-  }
-  return res.status(403).json({ error: 'Access denied.' });
-}, getUserById);
-
-// Admin-only route to create a new user
-router.post(
-  '/',
+// ✅ Update current user's profile (Clients & Trainers)
+router.put(
+  "/me",
   authenticateToken,
-  authorize(['admin']), // Only admins can create users
   validate([
-    body('name').notEmpty().withMessage('Name is required'),
-    body('email').isEmail().withMessage('Valid email is required'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
-    body('role').isIn(['admin', 'trainer', 'client']).withMessage('Role must be admin, trainer, or client'),
+    body("name").optional().notEmpty().withMessage("Name cannot be empty"),
+    body("email").optional().isEmail().withMessage("Valid email is required"),
+    body("password").optional().isLength({ min: 6 }).withMessage("Password must be at least 6 characters long"),
   ]),
-  createUser
+  updateUser
 );
 
-// Update a user (accessible by admin and the user themselves)
-router.put('/:id', authenticateToken, (req, res, next) => {
-  if (req.user.role === 'admin' || req.user.id === req.params.id) {
+// ✅ Admin-only route to fetch all users
+router.get("/", authenticateToken, authorize(["admin"]), getAllUsers);
+
+// ✅ Fetch user by ID (Admin & the user themselves)
+router.get("/:id", authenticateToken, (req, res, next) => {
+  if (req.user.role === "admin" || req.user.id === req.params.id) {
     return next();
   }
-  return res.status(403).json({ error: 'Access denied.' });
-}, updateUser);
+  return res.status(403).json({ error: "Access denied." });
+}, getUserById);
 
-// Admin-only route to delete a user
-router.delete('/:id', authenticateToken, authorize(['admin']), deleteUser); // Protected, admin-only
+// ✅ Admin-only route to delete a user (Soft Delete)
+router.delete("/:id", authenticateToken, authorize(["admin"]), deleteUser);
 
 module.exports = router;

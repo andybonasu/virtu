@@ -281,3 +281,17 @@
 2025-03-08T03:01:05.979Z [WARN]: Login attempt failed: Incorrect password for email anudeepbonasu97@gmail.com from IP: ::ffff:127.0.0.1
 2025-03-08T03:01:06.539Z [WARN]: Login attempt failed: Incorrect password for email anudeepbonasu97@gmail.com from IP: ::ffff:127.0.0.1
 2025-03-08T03:01:06.866Z [WARN]: Login attempt failed: Incorrect password for email anudeepbonasu97@gmail.com from IP: ::ffff:127.0.0.1
+2025-03-08T03:44:14.770Z [WARN]: Login attempt failed: Incorrect password for email anudeepbonasu97@gmail.com from IP: ::ffff:127.0.0.1
+2025-03-08T03:44:29.892Z [INFO]: User with email anudeepbonasu97@gmail.com logged in successfully from IP: ::ffff:127.0.0.1
+2025-03-08T03:45:01.501Z [WARN]: Unauthorized access attempt by user ID 8f76cc74-1a14-45b9-a28e-8ebec74e3ef0 with role admin
+2025-03-08T23:08:41.518Z [INFO]: New client registered: john.doe@example.com
+2025-03-08T23:10:54.205Z [INFO]: New trainer registered (awaiting approval): alice.trainer@example.com
+2025-03-08T23:12:23.012Z [INFO]: User with email anudeepbonasu97@gmail.com logged in successfully from IP: ::ffff:127.0.0.1
+2025-03-08T23:18:17.228Z [INFO]: User with email alice.trainer@example.com logged in successfully from IP: ::ffff:127.0.0.1
+2025-03-10T03:23:43.237Z [INFO]: User with email alice.trainer@example.com logged in successfully from IP: ::ffff:127.0.0.1
+2025-03-10T03:43:57.376Z [ERROR]: ReferenceError: validationResult is not defined
+    at C:\Users\surya\Documents\virtu\virtu-backend\routes\courseRoutes.js:29:20
+    at Layer.handle [as handle_request] (C:\Users\surya\Documents\virtu\virtu-backend\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\surya\Documents\virtu\virtu-backend\node_modules\express\lib\router\route.js:149:13)
+    at middleware (C:\Users\surya\Documents\virtu\virtu-backend\node_modules\express-validator\lib\middlewares\check.js:16:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
