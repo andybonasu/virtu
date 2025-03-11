@@ -7,6 +7,9 @@ const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes'); // Ensure auth routes are included
 const courseRoutes = require('./routes/courseRoutes'); // Import Course routes
 const adminRoutes = require("./routes/adminRoutes");
+const courseSettingsRoutes = require("./routes/courseSettingsRoutes");
+
+
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger'); // Import Winston logger
 const rateLimit = require('express-rate-limit');
@@ -44,6 +47,7 @@ app.use('/api/v1/users', generalLimiter, userRoutes);
 app.use('/api/v1/auth', authRoutes); // 🛑 FIXED: Now auth routes won't be affected by global rate limiter
 app.use('/api/v1/courses', courseRoutes); // ✅ Register Course Management APIs
 app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/course-settings", courseSettingsRoutes);
 // ✅ Health check route (Commented out)
 /*
 app.get('/health', (req, res) => {
@@ -56,12 +60,12 @@ app.get('/health', (req, res) => {
 app.use(errorHandler);
 
 // ✅ Sync database (Commented out logs)
-/*
+
 sequelize
   .sync({ alter: true }) // Adjust tables without dropping them
   .then(() => logger.info('Database synced successfully!'))
   .catch((err) => logger.error(`Error syncing database: ${err.message}`));
-*/
+
 
 // ✅ Start the server (Commented out logs)
 /*

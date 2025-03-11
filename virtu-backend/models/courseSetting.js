@@ -9,8 +9,17 @@ module.exports = (sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
+      course_id: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+          model: 'Courses',
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
+      },
       configType: {
-        type: DataTypes.ENUM('day_plan', 'reps_sets', 'module_config', 'custom'),
+        type: DataTypes.ENUM('day_plan', 'reps_sets', 'music_modules', 'module_config', 'custom'),
         allowNull: false,
       },
       configKey: {

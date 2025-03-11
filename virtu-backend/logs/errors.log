@@ -1,6 +1,0 @@
-2025-03-10T03:43:57.376Z [ERROR]: ReferenceError: validationResult is not defined
-    at C:\Users\surya\Documents\virtu\virtu-backend\routes\courseRoutes.js:29:20
-    at Layer.handle [as handle_request] (C:\Users\surya\Documents\virtu\virtu-backend\node_modules\express\lib\router\layer.js:95:5)
-    at next (C:\Users\surya\Documents\virtu\virtu-backend\node_modules\express\lib\router\route.js:149:13)
-    at middleware (C:\Users\surya\Documents\virtu\virtu-backend\node_modules\express-validator\lib\middlewares\check.js:16:13)
-    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
