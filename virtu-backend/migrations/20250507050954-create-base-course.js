@@ -7,7 +7,7 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: false,
         primaryKey: true,
-        defaultValue: Sequelize.UUIDV4
+        defaultValue: Sequelize.literal('uuid_generate_v4()')
       },
       trainer_id: {
         type: Sequelize.UUID,
@@ -16,8 +16,8 @@ module.exports = {
           model: 'Users',
           key: 'id'
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
       },
       title: {
         type: Sequelize.STRING,

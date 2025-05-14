@@ -1,17 +1,40 @@
 'use strict';
+const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
-  const AssignedCourse = sequelize.define('AssignedCourse', {
+  class AssignedCourse extends Model {
+    static associate(models) {
+      AssignedCourse.belongsTo(models.BaseCourse, {
+        foreignKey: 'base_course_id'
+      });
+
+      AssignedCourse.belongsTo(models.User, {
+        as: 'trainer',
+        foreignKey: 'trainer_id'
+      });
+
+      AssignedCourse.belongsTo(models.User, {
+        as: 'client',
+        foreignKey: 'client_id'
+      });
+
+      AssignedCourse.hasMany(models.Section, {
+        foreignKey: 'assigned_course_id'
+      });
+
+      AssignedCourse.hasMany(models.Payment, {
+        foreignKey: 'assigned_course_id'
+      });
+    }
+  }
+
+  AssignedCourse.init({
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
-      allowNull: false,
       primaryKey: true
     },
     base_course_id: {
-      type: DataTypes.UUID,
-      allowNull: false
-    },
-    client_id: {
       type: DataTypes.UUID,
       allowNull: false
     },
@@ -19,30 +42,27 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID,
       allowNull: false
     },
+    client_id: {
+      type: DataTypes.UUID,
+      allowNull: false
+    },
     is_paid: {
       type: DataTypes.BOOLEAN,
+      allowNull: false,
       defaultValue: false
     },
-    createdAt: {
+    created_at: {
       type: DataTypes.DATE,
+      field: 'created_at',
       defaultValue: DataTypes.NOW,
-      allowNull: false,
-      field: 'created_at'
+      allowNull: false
     }
   }, {
+    sequelize,
+    modelName: 'AssignedCourse',
     tableName: 'AssignedCourses',
-    updatedAt: false
+    timestamps: false
   });
-
-  AssignedCourse.associate = models => {
-    AssignedCourse.belongsTo(models.User, { as: 'client', foreignKey: 'client_id' });
-    AssignedCourse.belongsTo(models.User, { as: 'trainer', foreignKey: 'trainer_id' });
-    AssignedCourse.belongsTo(models.BaseCourse, { foreignKey: 'base_course_id' });
-    AssignedCourse.hasMany(models.Section, {foreignKey: 'assigned_course_id'});
-    AssignedCourse.hasMany(models.Payment, { foreignKey: 'assigned_course_id' });
-
-    
-  };
 
   return AssignedCourse;
 };

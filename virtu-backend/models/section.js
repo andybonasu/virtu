@@ -1,11 +1,28 @@
 'use strict';
+const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
-  const Section = sequelize.define('Section', {
+  class Section extends Model {
+    static associate(models) {
+      Section.belongsTo(models.AssignedCourse, {
+        foreignKey: 'assigned_course_id'
+      });
+
+      Section.hasMany(models.Block, {
+        foreignKey: 'section_id'
+      });
+
+      Section.hasMany(models.Submission, {
+        foreignKey: 'section_id'
+      });
+    }
+  }
+
+  Section.init({
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-      allowNull: false
+      primaryKey: true
     },
     assigned_course_id: {
       type: DataTypes.UUID,
@@ -18,29 +35,13 @@ module.exports = (sequelize, DataTypes) => {
     position: {
       type: DataTypes.INTEGER,
       allowNull: false
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-      allowNull: false,
-      field: 'created_at'
     }
   }, {
+    sequelize,
+    modelName: 'Section',
     tableName: 'Sections',
-    updatedAt: false
+    timestamps: false
   });
-
-  Section.associate = models => {
-    Section.belongsTo(models.AssignedCourse, {
-      foreignKey: 'assigned_course_id'
-    });
-    Section.hasMany(models.Block, {
-      foreignKey: 'section_id'
-    });    
-    Section.hasMany(models.Submission, {
-      foreignKey: 'section_id'
-    });    
-  };
 
   return Section;
 };

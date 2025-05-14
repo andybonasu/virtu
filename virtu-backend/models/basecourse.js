@@ -1,10 +1,28 @@
 'use strict';
+const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
-  const BaseCourse = sequelize.define('BaseCourse', {
+  class BaseCourse extends Model {
+    static associate(models) {
+      BaseCourse.belongsTo(models.User, {
+        as: 'trainer',
+        foreignKey: 'trainer_id'
+      });
+
+      BaseCourse.hasOne(models.PublicCourse, {
+        foreignKey: 'base_course_id'
+      });
+
+      BaseCourse.hasMany(models.AssignedCourse, {
+        foreignKey: 'base_course_id'
+      });
+    }
+  }
+
+  BaseCourse.init({
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
-      allowNull: false,
       primaryKey: true
     },
     trainer_id: {
@@ -19,29 +37,18 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: true
     },
-    createdAt: {
+    created_at: {
       type: DataTypes.DATE,
-      allowNull: false,
+      field: 'created_at',
       defaultValue: DataTypes.NOW,
-      field: 'created_at'
+      allowNull: false
     }
   }, {
+    sequelize,
+    modelName: 'BaseCourse',
     tableName: 'BaseCourses',
-    updatedAt: false
+    timestamps: false
   });
-
-  BaseCourse.associate = models => {
-    BaseCourse.belongsTo(models.User, {
-      as: 'trainer',
-      foreignKey: 'trainer_id'
-    });
-    BaseCourse.hasMany(models.AssignedCourse, {
-      foreignKey: 'base_course_id'
-    });    
-    BaseCourse.hasOne(models.PublicCourse, {
-      foreignKey: 'base_course_id'
-    });    
-  };
 
   return BaseCourse;
 };

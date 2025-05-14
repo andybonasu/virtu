@@ -1,10 +1,20 @@
 'use strict';
+const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
-  const Block = sequelize.define('Block', {
+  class Block extends Model {
+    static associate(models) {
+      Block.belongsTo(models.Section, {
+        foreignKey: 'section_id'
+      });
+    }
+  }
+
+  Block.init({
     id: {
       type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4
     },
     section_id: {
       type: DataTypes.UUID,
@@ -18,22 +28,18 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true
     },
-    createdAt: {
+    created_at: {
       type: DataTypes.DATE,
-      allowNull: false,
+      field: 'created_at',
       defaultValue: DataTypes.NOW,
-      field: 'created_at'
+      allowNull: false
     }
   }, {
+    sequelize,
+    modelName: 'Block',
     tableName: 'Blocks',
-    updatedAt: false
+    timestamps: false
   });
-
-  Block.associate = models => {
-    Block.belongsTo(models.Section, {
-      foreignKey: 'section_id'
-    });
-  };
 
   return Block;
 };

@@ -1,6 +1,21 @@
 'use strict';
+const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
-  const Submission = sequelize.define('Submission', {
+  class Submission extends Model {
+    static associate(models) {
+      Submission.belongsTo(models.User, {
+        as: 'client',
+        foreignKey: 'client_id'
+      });
+
+      Submission.belongsTo(models.Section, {
+        foreignKey: 'section_id'
+      });
+    }
+  }
+
+  Submission.init({
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
@@ -22,26 +37,18 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true
     },
-    submittedAt: {
+    submitted_at: {
       type: DataTypes.DATE,
-      allowNull: false,
+      field: 'submitted_at',
       defaultValue: DataTypes.NOW,
-      field: 'submitted_at'
+      allowNull: false
     }
   }, {
+    sequelize,
+    modelName: 'Submission',
     tableName: 'Submissions',
-    updatedAt: false
+    timestamps: false
   });
-
-  Submission.associate = models => {
-    Submission.belongsTo(models.User, {
-      as: 'client',
-      foreignKey: 'client_id'
-    });
-    Submission.belongsTo(models.Section, {
-      foreignKey: 'section_id'
-    });
-  };
 
   return Submission;
 };

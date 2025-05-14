@@ -5,9 +5,9 @@ module.exports = {
     await queryInterface.createTable('Blocks', {
       id: {
         type: Sequelize.UUID,
-        primaryKey: true,
         allowNull: false,
-        defaultValue: Sequelize.UUIDV4
+        primaryKey: true,
+        defaultValue: Sequelize.literal('uuid_generate_v4()')
       },
       section_id: {
         type: Sequelize.UUID,
