@@ -57,7 +57,6 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
   }
-
   User.init({
     id: {
       type: DataTypes.UUID,
@@ -85,6 +84,26 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true
     },
+    bio: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    instagram_handle: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    youtube_link: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    client_background: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    trainer_logo: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
     is_approved: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -100,7 +119,7 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'User',
     tableName: 'Users',
-    timestamps: false // disables Sequelize auto `createdAt` / `updatedAt`
+    timestamps: false
   });
 
   return User;
