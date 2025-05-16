@@ -60,15 +60,26 @@ exports.getAssignedCourseByClientId = async (req, res) => {
 
   try {
     const assigned = await AssignedCourse.findOne({
-      where: { client_id: clientId }
+      where: { client_id: clientId },
+      include: [
+        {
+          model: BaseCourse,
+          attributes: ['title']
+        }
+      ]
     });
 
     if (!assigned) return res.status(404).json({ error: 'No course found for this client' });
-    res.json(assigned);
+
+    const result = assigned.toJSON();
+    result.base_course_title = assigned.BaseCourse?.title || null;
+
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: 'Fetch failed' });
   }
 };
+
 
 // 6. Update assigned course (Admin or Trainer)
 exports.updateAssignedCourse = async (req, res) => {

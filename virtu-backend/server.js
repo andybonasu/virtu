@@ -9,7 +9,9 @@ const submissionRoutes = require('./routes/submissionRoutes');
 const publicCourseRoutes = require('./routes/publicCourseRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const cors = require('cors');
 
+app.use(cors());
 app.use(express.json());
 app.use('/api', authRoutes);
 app.use('/api/admin', adminRoutes);
