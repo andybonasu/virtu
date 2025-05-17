@@ -36,23 +36,46 @@ exports.getTrainerCourses = async (req, res) => {
   res.json(courses);
 };
 
-// 4. Admin assigns a course to a client
+// 4. Admin assigns a course to a client (with duplicate check)
 exports.assignCourseToClient = async (req, res) => {
   const { base_course_id, trainer_id, client_id, is_paid } = req.body;
 
   try {
-    const assigned = await AssignedCourse.create({
+    // Check if the client already has a course assigned
+    const existingAssignment = await AssignedCourse.findOne({ where: { client_id } });
+
+    if (existingAssignment) {
+      // Update existing assignment instead of creating a new one
+      await existingAssignment.update({
+        base_course_id,
+        trainer_id,
+        is_paid: is_paid ?? existingAssignment.is_paid,
+      });
+
+      return res.json({
+        message: 'Updated existing course assignment for client.',
+        assignment: existingAssignment,
+      });
+    }
+
+    // No existing assignment, create a new one
+    const newAssignment = await AssignedCourse.create({
       base_course_id,
       trainer_id,
       client_id,
-      is_paid: is_paid ?? false
+      is_paid: is_paid ?? false,
     });
-    res.status(201).json(assigned);
+
+    res.status(201).json({
+      message: 'Created new course assignment for client.',
+      assignment: newAssignment,
+    });
   } catch (err) {
-    console.error(err);
+    console.error('❌ Assignment error:', err);
     res.status(500).json({ error: 'Assignment failed' });
   }
 };
+
 
 // 5. Get assigned course for a client
 exports.getAssignedCourseByClientId = async (req, res) => {
@@ -117,12 +140,14 @@ exports.getTrainerClients = async (req, res) => {
         },
         {
           model: BaseCourse,
-          attributes: ['title']
+          attributes: ['id', 'title']
         }
       ]
     });
 
     const response = assignments.map(ac => ({
+      assigned_course_id: ac.id,                   // Added
+      base_course_id: ac.BaseCourse.id,            // Added
       client: ac.client,
       course_title: ac.BaseCourse.title,
       is_paid: ac.is_paid
@@ -134,6 +159,7 @@ exports.getTrainerClients = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
 
 
 exports.getTrainerForClient = async (req, res) => {
